@@ -1,0 +1,64 @@
+// Replace with your actual Google Safe Browsing API key
+const API_KEY = "YOUR_GOOGLE_SAFE_BROWSING_API_KEY";
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "checkUrl") {
+    const urlToCheck = request.url;
+
+    fetch("https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + API_KEY, {
+      method: "POST",
+      body: JSON.stringify({
+        client: {
+          clientId:      "beaconsafe-extension",
+          clientVersion: "2.0"
+        },
+        threatInfo: {
+          threatTypes:      ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
+          platformTypes:    ["ANY_PLATFORM"],
+          threatEntryTypes: ["URL"],
+          threatEntries: [
+            { url: urlToCheck }
+          ]
+        }
+      }),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.matches) {
+        sendResponse({ unsafe: true });
+      } else {
+        sendResponse({ unsafe: false });
+      }
+    })
+    .catch(error => {
+      console.error("Safe Browsing API error:", error);
+      sendResponse({ unsafe: false });
+    });
+
+    // Indicate async response
+    return true;
+  }
+});
+3. content.js
+JavaScript
+// Only check top-level frame
+if (window.top === window.self) {
+  chrome.runtime.sendMessage(
+    { action: "checkUrl", url: window.location.href },
+    (response) => {
+      if (response && response.unsafe) {
+        document.body.innerHTML = `
+          <div style="background: #b30000; color: #fff; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <h1 style="font-size:3em;">⛔ BEACONSAFE ALERT</h1>
+            <p style="font-size:1.5em;">This webpage is flagged as unsafe and may try to hack you!</p>
+            <p style="font-size:1.2em;">We recommend closing this page immediately.</p>
+          </div>
+        `;
+        document.title = "⚠️ Unsafe Webpage Blocked";
+      }
+    }
+  );
+}
