@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "SafeWeb Alert",
+  "version": "1.0",
+  "description": "Alerts you if you visit an unsafe webpage.",
+  "permissions": ["tabs"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
