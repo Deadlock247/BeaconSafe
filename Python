@@ -1,0 +1,31 @@
+import requests
+
+# A simple blacklist (in production, use a real-time threat feed)
+BLACKLISTED_DOMAINS = [
+    "malicious.com",
+    "phishing-site.org",
+    "badwebsite.net"
+]
+
+def is_domain_blacklisted(domain):
+    return domain.lower() in BLACKLISTED_DOMAINS
+
+def check_website_safety(url):
+    try:
+        domain = url.split("//")[-1].split("/")[0]
+        if is_domain_blacklisted(domain):
+            print(f"ALERT: {domain} is a known unsafe website! Do NOT proceed.")
+            return False
+        # Optionally: Check with Google Safe Browsing API or others
+        print(f"{domain} appears safe (not in local blacklist).")
+        return True
+    except Exception as e:
+        print("Error checking website:", e)
+        return False
+
+if __name__ == "__main__":
+    while True:
+        url = input("Enter a website URL to check (or type 'exit'): ")
+        if url.lower() == "exit":
+            break
+        check_website_safety(url)
